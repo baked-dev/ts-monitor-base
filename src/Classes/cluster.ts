@@ -16,7 +16,7 @@ let keywords = {
     positive: [],
     negative: []
 }
-let webHooks: WebHook[];
+let webHooks: WebHook[] = [];
 
 export const startMonitor = () => {
     for (let core = 0; core < cpus().length; core++) {
@@ -61,7 +61,7 @@ export const startMonitor = () => {
         const workerTasks = split_tasks[cluster.worker.id - 1];
         logger.success(`Worker ready... monitoring ${workerTasks.sites.length} Site(s) with ${workerTasks.amount} URL(s)`, cluster.worker.id);
         if (workerTasks.amount) logger.debug('Site(s): ' + workerTasks.sites.map(x => x.name).join(), cluster.worker.id);
-        new Monitor(workerTasks, cluster.worker.id, keywords, proxies);
+        new Monitor(workerTasks, cluster.worker.id, keywords, proxies, webHooks);
     }
 }
 

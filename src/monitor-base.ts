@@ -1,19 +1,20 @@
 import { startMonitor, addTask, Task, setProxies, setNegativeKeywords, setPositiveKeywords, addWebhook } from './Classes/cluster';
 import * as fs from 'fs';
 
-setProxies(JSON.parse(fs.readFileSync('./proxies.json').toString()));
+//setProxies(JSON.parse(fs.readFileSync('./proxies.json').toString()));
 
 setPositiveKeywords([
     'air+jordan+the+10'
 ])
 
 addWebhook({
-    uri: '',
+    uri: 'https://discordapp.com/api/webhooks/441805529594068993/cdqSEW0IrkQdi8MjiQBnfOB6CE0VWLM_-6jvIRa50Ulg_nAqZie8eiGQzGTtdsc8UXcH',
     color: 'FB8D8C',
-    branding: 'Half Baked Monitor',
+    branding: 'HalfBakedAIO',
     userIcon: 'https://ghostaio.com/img/icon.png',
     footerIcon: 'https://ghostaio.com/img/icon.png',
-    whitelist: ['nikeSNKRS']
+    whitelist: ['nikeSNKRS'],
+    showParserAuthor: true
 })
 
 addTask({

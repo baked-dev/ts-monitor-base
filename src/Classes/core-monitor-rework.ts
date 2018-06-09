@@ -5,6 +5,7 @@ import logger from '../utils/Logger';
 import { Task } from './cluster';
 import ProxyManager, { Manager } from '../utils/Proxy-Manager';
 import cfBypass from '../utils/CF-Bypass';
+import Notify, { WebHook } from '../utils/Notify';
 
 logger._debug = true;
 
@@ -25,11 +26,13 @@ export default class Monitor {
     private persistentData: any = {};
     private id: number;
     private proxyManagers: any = {};
+    private webHooks: WebHook[];
 
-    constructor ({ sites }, id: number, keywords: {positive: string[], negative: string[]}, proxies: string[]) {
+    constructor ({ sites }, id: number, keywords: {positive: string[], negative: string[]}, proxies: string[], webHooks: WebHook[]) {
         this.keywords = keywords;
         this.id = id;
 
+        this.webHooks = webHooks;
         this.proxyManagers.default = new ProxyManager(proxies);
 
         for (const site of sites) {
@@ -68,6 +71,9 @@ export default class Monitor {
                     let change: boolean = false;
                     for (const item of site.parser.parse(res)) {
                         if (!Object.keys(this.persistentData[site.name]).includes(item.unique_id)) {
+                            item.message = `New Item on ${site.name} ${item.region?item.region:''}`;
+                            item.site = site.name;
+                            new Notify(item, this.webHooks);
                             logger.success(`${site.name} - found new item: ${item.name}`, this.id);
                             change = true;
                             this.persistentData[site.name][item.unique_id] = item;
