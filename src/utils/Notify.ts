@@ -26,10 +26,8 @@ export default class Notify {
     }
 
     sendOne (webhook: WebHook, message?: any) {
-        console.log()
         if (this.check(webhook)) {
             if (!message) message = this.makeMessage(webhook);
-            console.log(message);
             request({
                 method: 'POST',
                 uri: webhook.uri,
@@ -37,7 +35,6 @@ export default class Notify {
                 body: message
             }).catch((e: any) => {
                 let retry;
-                logger.error(e.message);
                 try {
                     retry = JSON.parse(e.message.split(' - ')[1]).retry_after;
                 } catch(e) {

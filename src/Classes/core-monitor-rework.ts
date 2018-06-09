@@ -37,7 +37,7 @@ export default class Monitor {
 
         for (const site of sites) {
             //load data
-            this.loadData(site.name);
+            this.loadData(site);
             this.runs[site.name] = 1;
             this.monitor(site);
         }
@@ -54,6 +54,7 @@ export default class Monitor {
                 this.monitor(site);
             })
         } else {
+            logger.success(site.name + ' - starting new run: ' + (this.runs[site.name]++).toString(), this.id)
             let proxyManager: Manager;
             const jar: CookieJar = site.cloudflare?cfCookies[site.name]:request.jar();
             if (site.useProxies || site.proxies) proxyManager = this.getProxyManager(site);
@@ -70,21 +71,59 @@ export default class Monitor {
                 request(options).then((res: any) => {
                     let change: boolean = false;
                     for (const item of site.parser.parse(res)) {
-                        if (!Object.keys(this.persistentData[site.name]).includes(item.unique_id)) {
+                        if (!Object.keys(this.persistentData[site.name].newItem).includes(item.unique_id)) {
                             item.message = `New Item on ${site.name} ${item.region?item.region:''}`;
                             item.site = site.name;
                             new Notify(item, this.webHooks);
                             logger.success(`${site.name} - found new item: ${item.name}`, this.id);
                             change = true;
-                            this.persistentData[site.name][item.unique_id] = item;
+                            this.persistentData[site.name].newItem[item.unique_id] = item;
+                            if (site.restock && this.keywords.positive.some(e => e.split('+').every(f => item.name.toLowerCase().includes(f))) && !this.keywords.negative.some(e => e.split('+').every(f => item.name.toLowerCase().includes(f)))){
+                                logger.success(`${site.name} - starting restock monitor for: ${item.name}`, this.id);
+                               // this.monitorItem(site, item);
+                            }
                         }
                     }
                     if (change) this.saveData(site.name);
                 })
             }
-            
+            setTimeout(() => {
+                this.monitor(site);
+            }, site.delay || this.delay);
+        }   
+    }
+
+    private monitorItem (site: Task,  item: any) {
+        if (!this.persistentData[site.name].restock.includes(item.unique_id)) {
+            this.persistentData[site.name].restock.push(item.unique_id);
+            this.saveData(site.name);
         }
-        
+        const jar = site.cloudflare?cf_cookies[site.name]:request.jar();
+        request({
+            method:'GET',
+            uri: item.url,
+            headers: site.headers || headers,
+            gzip:true,
+            jar
+        }).then((res) => {
+            const { stock, type } = site.parser.parse_item(res, item.url);
+            if (type === 'stockitems') {
+                let restock = false;
+                if (this.persistentData[site.name].newItem[item.unique_id].sizes === false) {
+                    this.persistentData[site.name].newItem[item.unique_id].sizes = [];
+                }
+                for (const product of stock) if (!this.persistentData[site.name].newItem[item.unique_id].sizes.includes(product)) {
+                    restock = true;
+                }
+                this.persistentData[site.name].newItem[item.unique_id].sizes = stock;
+                if (restock) {
+                    item.message = `Restock on ${site.name} ${item.region?item.region:''}`;
+                    this.saveData(site.name);
+                }
+            } else if (type === 'stocknumbers') {
+
+            }
+        })
     }
 
     private getProxyManager (site: Task) {
@@ -96,16 +135,22 @@ export default class Monitor {
         } else return this.proxyManagers.default;
     }
 
-    private loadData (site: string) {
+    private loadData (site: Task) {
         return new Promise((resolve, reject) => {
             try {
-                this.persistentData[site] = JSON.parse(fs.readFileSync(`./data/${site}_data.json`).toString());
-                logger.success(`${site} - successfully loaded data`, this.id);
+                this.persistentData[site.name] = JSON.parse(fs.readFileSync(`./data/${site.name}_data.json`).toString());
+                logger.success(`${site.name} - successfully loaded data`, this.id);
+                if (site.restock) for (const item of this.persistentData[site.name].restock) {
+                    this.monitorItem(site, this.persistentData[site.name].newItem[item]);
+                }
                 resolve();
             } catch(e) {
                 logger.error(`${site} - Error loading data, creating empty data file`, this.id);
-                this.persistentData[site] = {};
-                this.saveData(site);
+                this.persistentData[site.name] = {
+                    restock: [],
+                    newItem: {}
+                };
+                this.saveData(site.name);
                 resolve();
             }
         })

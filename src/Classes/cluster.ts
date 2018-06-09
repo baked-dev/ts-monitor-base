@@ -116,6 +116,7 @@ export interface Task {
     keywords?: {
         positive: string[],
         negative: string[];
-    }
+    },
+    delay?: number;
 }
 
