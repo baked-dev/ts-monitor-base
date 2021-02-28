@@ -14,41 +14,41 @@ I provided examples for parsers in src/Parsers.
 ## Usage  
 
 1. Clone this repo  
-2. Configure the framework from the ts-monitor-base.ts (refer to src/monitor-base.ts)  
+2. Configure the framework from the monitor-base.ts (refer to src/monitor-base.ts)  
 3. start using npm start or yarn start  
 
 ## Configuration  
 
 the cluster module from (Classes/cluster.ts) exports methods to configure how the monitor cluster will behave  
 
-### addTask(task: Task): void
+#### addTask(task: Task): void
 Method to add a Task to the framework
 
-### addWebhook(webhook: WebHook): void  
+#### addWebhook(webhook: WebHook): void  
 Method to add a webhook to be used by the framework.  
 
-### startMonitor(): void  
+#### startMonitor(): void  
 Method to start monitoring pages.  
 
-### addProxy(proxy: string): void  
+#### addProxy(proxy: string): void  
 Method to add a single proxy to be used by the framework.  
 
-### addProxies(proxies: string[]): void  
+#### addProxies(proxies: string[]): void  
 Method to add multiple proxies to be used by the framework.  
 
-### setProxies(proxies: string[]): void  
+#### setProxies(proxies: string[]): void  
 Method to set the proxies used by the framework. This method overrides the proxy list.  
 
-### addPositiveKeyword(keyword: string): void  
+#### addPositiveKeyword(keyword: string): void  
 Method to add a positive keyword to be used by the framework.  
 
-### addNegativeKeyword(keyword: string): void  
+#### addNegativeKeyword(keyword: string): void  
 Method to add a negative keyword to be used by the framework.  
 
-### setPositiveKeywords(keywords: string[]): void  
+#### setPositiveKeywords(keywords: string[]): void  
 Method to set the positive keyword list used by the framework.  
 
-### setNegativeKeywords(keywords: string[]): void  
+#### setNegativeKeywords(keywords: string[]): void  
 Method to set the negative keyword list used by the framework.  
 
 ## Interfaces
